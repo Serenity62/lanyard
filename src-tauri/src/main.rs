@@ -2,13 +2,16 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use app::*;
-use serde::{Serialize, Deserialize};
+use std::sync::Mutex;
+//use serde::{Serialize, Deserialize};
+
+struct Note(Mutex<Settings>);
 
 fn main() {
-
+    let settings = Settings::builder(String::from("settings.json"));
     tauri::Builder::default()
-        .manage(app::Settings::builder(String::from("settings.json")).into())
-        .invoke_handler(tauri::generate_handerl![get_profile, get_profiles])
+        .manage(Note(settings.into()))
+        .invoke_handler(tauri::generate_handler![get_profile, get_profiles])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
@@ -21,21 +24,24 @@ fn get_profile () -> ProfileAccounts {
         location: String::from("test.json")
     };
 
-    let as = match p.get_accounts() {
+    let accounts = match p.get_accounts() {
         Err(why) => panic!("Error when getting accounts: {}", why),
-        Ok(as) => as,
+        Ok(accounts) => accounts,
     };
-    as
+    accounts
 }
 
 #[tauri::command]
-fn get_profiles(settings: tauri::State<Settings>) -> Vec<Profile> {
-    settings.profiles
+fn get_profiles(state: tauri::State<Note>) -> Vec<Profile> {
+    let settings = state.0.lock().unwrap();
+    let profs = settings.profiles.clone();
+    profs
 }
 
 
-[tauri::command]
-fn new_profile(mut settings: tauri::State<Settings>, p: Profile) -> Result<()> {
+#[tauri::command]
+fn new_profile(state: tauri::State<Note>, p: Profile) -> Result<(), String> {
+    let mut settings = state.0.lock().unwrap();
     settings.profiles.push(p);
     Ok(())
 }
