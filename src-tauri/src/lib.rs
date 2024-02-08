@@ -120,10 +120,13 @@ mod tests {
 
     #[test]
     fn file_write() {
-        let path = String::from("test.txt");
+        let path = String::from("test/test.txt");
+        let _ = std::fs::remove_file(&path); 
         let test = String::from("this is a test");
         write(&path, &test).unwrap();
-        let mut file = match File::open(&Path::new("test.txt")){
+
+        // Read in file to chek.
+        let mut file = match File::open(&path){
             Err(why) => panic!("could not write to file: {}", why),
             Ok(file) => file,
         };
@@ -136,7 +139,7 @@ mod tests {
 
     #[test]
     fn file_read() {
-        let path = String::from("test.txt");
+        let path = String::from("test/test2.txt");
         let test = String::from("this is a test");
         let file = read(&path).unwrap();
         assert_eq!(file, test);

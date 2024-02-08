@@ -11,7 +11,7 @@ fn main() {
     let settings = Settings::builder(String::from("settings.json"));
     tauri::Builder::default()
         .manage(Note(settings.into()))
-        .invoke_handler(tauri::generate_handler![get_profile, get_profiles])
+        .invoke_handler(tauri::generate_handler![get_profile])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
@@ -31,17 +31,19 @@ fn get_profile () -> ProfileAccounts {
     accounts
 }
 
+/*
 #[tauri::command]
 fn get_profiles(state: tauri::State<Note>) -> Vec<Profile> {
     let settings = state.0.lock().unwrap();
     let profs = settings.profiles.clone();
     profs
 }
-
-
+*/
+/*
 #[tauri::command]
 fn new_profile(state: tauri::State<Note>, p: Profile) -> Result<(), String> {
     let mut settings = state.0.lock().unwrap();
     settings.profiles.push(p);
     Ok(())
 }
+*/
