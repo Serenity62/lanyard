@@ -31,9 +31,22 @@ pub struct Settings {
 impl Settings {
     pub fn builder(filename: String) -> Settings {
         let s = match read(&filename) {
-            Err(why) => panic!("Issue opening settings: {}", why),
-            Ok(s) => s,
+            Err(why) => panic!("Could not read file: {}", why), 
+            Ok(s) => {
+                if s.is_empty() {
+                    let str = String::from("{\n\r\"profiles\": []\n\r}");
+                    match write(&filename, &str){
+                        Err(why) => panic!("Could not create file: {}", why),
+                        Ok(_) => (),
+                    };
+                    read(&filename).unwrap()
+                } else {
+                    s
+                }
+            },
         };
+
+
         let settings: Settings = match serde_json::from_str(&s){
             Err(why) => panic!("Issue processing settings: {}", why),
             Ok(settings) => settings,
@@ -113,9 +126,8 @@ pub struct Account {
 }
 
 #[cfg(test)]
-mod tests {
+mod io {
     use std::fs::File;
-    use std::path::Path;
     use super::*;
 
     #[test]
@@ -144,4 +156,49 @@ mod tests {
         let file = read(&path).unwrap();
         assert_eq!(file, test);
     }
+}
+
+#[cfg(test)]
+mod settings {
+    use super::*;
+
+    #[test]
+    fn builder() {
+        let settings = Settings::builder(String::from("test/settings.json"));
+        assert_eq!(0, settings.profiles.len());
+    }
+
+    #[test]
+    fn builder_create() {
+        let path = String::from("test/settings_new.json");
+        let _ = std::fs::remove_file(&path);
+
+        let settings = Settings::builder(path);
+        assert_eq!(0, settings.profiles.len());
+    }
+
+    /*
+    #[test]
+    fn create() {}
+    #[test]
+    fn delete() {}
+    */
+}
+
+#[cfg(test)]
+mod profile {
+    use super::*;
+
+    /*
+    #[test]
+    fn get() {}
+    #[test]
+    fn add() {}
+    #[test]
+    fn update() {}
+    #[test]
+    fn delete() {}
+    #[test]
+    fn delete_all() {}
+    */
 }
