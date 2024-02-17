@@ -2,6 +2,7 @@ use serde::{Serialize, Deserialize};
 use std::fs::File;
 use std::io::{Read, Write, Result};
 use std::path::Path;
+use rand::prelude::*;
 
 fn read(p: &String) -> Result<String> {
     // add sanitization to the path argument
@@ -46,7 +47,6 @@ impl Settings {
             },
         };
 
-
         let settings: Settings = match serde_json::from_str(&s){
             Err(why) => panic!("Issue processing settings: {}", why),
             Ok(settings) => settings,
@@ -55,21 +55,48 @@ impl Settings {
     }
 
     pub fn create_profile(&mut self, p: &Profile) -> Result<()> {
+        println!("{}", p.id);
         Ok(())
     }
     pub fn delete_profile(&mut self, id:i32) -> Result<()> {
+        println!("{}", id);
         Ok(())
     }
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Profile {
-    pub id: i32,
+    pub id: u32,
     pub name: String,
     pub location: String,
 }
 
 impl Profile {
+    pub fn builder(name: &String, location: &String) -> Profile {
+        let mut rnd = rand::thread_rng();
+        let str = String::from("{\n\r\"ProfileAccounts\": []\n\r}");
+
+        match read(&location) {
+            Err(why) => panic!("Issue with file location: {}", why), 
+            Ok(s) => {
+                if s.is_empty() {
+                    match write(&location, &str){
+                        Err(why) => panic!("Could not create file: {}", why),
+                        Ok(_) => (),
+                    };
+                } else {
+                   panic!("File already exists"); 
+                }
+            },
+        };
+
+        Profile {
+            id: rnd.gen_range(0..=10),
+            name: name.to_string(),
+            location: location.to_string(),
+        }
+    }
+
     pub fn get_accounts(&self) -> Result<ProfileAccounts> {
         let s = read(&self.location)?;
         let accounts: ProfileAccounts = serde_json::from_str(&s)?;
@@ -85,10 +112,12 @@ impl Profile {
     }
 
     pub fn update_account(&self, a: &Account) -> Result<()> {
+        println!("{},", a.id);
         Ok(())
     }
 
     pub fn delete_account(&self, id: i32) -> Result<()> {
+        println!("{}", id);
         Ok(())
     }
     pub fn delete_all(&self) -> Result<()> {
@@ -190,6 +219,21 @@ mod settings {
 mod profile {
     use super::*;
 
+    #[test]
+    fn builder() {
+        let name = String::from("Test Profile");
+        let location = String::from("tests/files/test_profile");
+        let str = String::from("{\n\r\"ProfileAccounts\": []\n\r}");
+
+        let _ = std::fs::remove_file(&location);
+        let p = Profile::builder(&name, &location);
+        let file = read(&location).unwrap();
+
+        assert_eq!(name, p.name);
+        assert_eq!(location, p.location);
+        assert_ne!(0, p.id);
+        assert_eq!(str, file);
+    }
     /*
     #[test]
     fn get() {}
