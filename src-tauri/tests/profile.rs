@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod profile {
-    use super::*;
+    use app::Profile;
 
     /*
     #[test]

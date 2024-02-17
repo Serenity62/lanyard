@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod settings {
-    use super::*;
+    use app::Settings;
 
     #[test]
     fn builder() {
