@@ -132,7 +132,7 @@ mod io {
 
     #[test]
     fn file_write() {
-        let path = String::from("test/files/test.txt");
+        let path = String::from("tests/files/test.txt");
         let _ = std::fs::remove_file(&path); 
         let test = String::from("this is a test");
         write(&path, &test).unwrap();
@@ -151,9 +151,55 @@ mod io {
 
     #[test]
     fn file_read() {
-        let path = String::from("test/files/test2.txt");
+        let path = String::from("tests/files/test2.txt");
         let test = String::from("this is a test");
         let file = read(&path).unwrap();
         assert_eq!(file, test);
     }
+}
+
+
+#[cfg(test)]
+mod settings {
+    use super::*;
+
+    #[test]
+    fn builder() {
+        let settings = Settings::builder(String::from("tests/files/settings.json"));
+        assert_eq!(0, settings.profiles.len());
+    }
+
+    #[test]
+    fn builder_create() {
+        let path = String::from("tests/files/settings_new.json");
+        let _ = std::fs::remove_file(&path);
+
+        let settings = Settings::builder(path);
+        assert_eq!(0, settings.profiles.len());
+    }
+
+    /*
+    #[test]
+    fn create() {}
+    #[test]
+    fn delete() {}
+    */
+}
+
+#[cfg(test)]
+mod profile {
+    use super::*;
+
+    /*
+    #[test]
+    fn get() {}
+    #[test]
+    fn add() {}
+    #[test]
+    fn update() {}
+    #[test]
+    fn delete() {}
+    #[test]
+    fn delete_all() {}
+    */
 }
