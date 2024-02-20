@@ -27,6 +27,7 @@ fn write(p: &String, s: &String) -> Result<()> {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Settings {
     pub profiles: Vec<Profile>,
+    pub location: String,
 }
 
 impl Settings {
@@ -35,7 +36,11 @@ impl Settings {
             Err(why) => panic!("Could not read file: {}", why), 
             Ok(s) => {
                 if s.is_empty() {
-                    let str = String::from("{\n\r\"profiles\": []\n\r}");
+                    let new_setting = Settings {
+                        profiles: Vec::new(),
+                        location: filename.to_string(),
+                    };
+                    let str = serde_json::to_string(&new_setting);
                     match write(&filename, &str){
                         Err(why) => panic!("Could not create file: {}", why),
                         Ok(_) => (),
@@ -54,11 +59,17 @@ impl Settings {
         settings
     }
 
-    pub fn create_profile(&mut self, p: &Profile) -> Result<()> {
-        println!("{}", p.id);
+    pub fn add_profile(&mut self, p: Profile) -> Result<()> {
+        let str_settings = read(&self.location).unwrap();
+        let mut settings: Settings = serde_json::from_str(&str_settings)?;
+        settings.profiles.push(p);
+        self.profiles.push(p);
+        let str: String = serde_json::to_string(&settings)?;
+        let _ = write(&self.location, &str)?;
         Ok(())
     }
-    pub fn delete_profile(&mut self, id:i32) -> Result<()> {
+    
+    pub fn delete_profile(&mut self, id:u32) -> Result<()> {
         println!("{}", id);
         Ok(())
     }
@@ -97,6 +108,31 @@ impl Profile {
         }
     }
 
+    pub fn update_location(&mut self, location: &String) {
+        let old_loc = self.location.to_string();
+
+        let f = read(&old_loc).unwrap();
+
+        match read(&location) {
+            Err(why) => panic!("Issue with file location: {}", why), 
+            Ok(s) => {
+                if s.is_empty() {
+                    match write(&location, &f){
+                        Err(why) => panic!("Could not create file: {}", why),
+                        Ok(_) =>  {
+                            let _ = std::fs::remove_file(&old_loc); 
+                            ()
+                        }, 
+                    };
+                } else {
+                   panic!("File already exists"); 
+                }
+            },
+        };
+
+        self.location = location.to_string();
+    }
+
     pub fn get_accounts(&self) -> Result<ProfileAccounts> {
         let s = read(&self.location)?;
         let accounts: ProfileAccounts = serde_json::from_str(&s)?;
@@ -116,7 +152,7 @@ impl Profile {
         Ok(())
     }
 
-    pub fn delete_account(&self, id: i32) -> Result<()> {
+    pub fn delete_account(&self, id: u32) -> Result<()> {
         println!("{}", id);
         Ok(())
     }
@@ -148,7 +184,7 @@ pub struct BasicAccount {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Account {
-    pub id: i32,
+    pub id: u32,
     pub name: String,
     pub r#type: AccountType,
     pub account: String,
