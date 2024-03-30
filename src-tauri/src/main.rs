@@ -1,7 +1,11 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use app::*;
+mod app_lib;
+//use app::*;
+use crate::app_lib::account::*;
+use crate::app_lib::setting::*;
+
 use std::sync::Mutex;
 //use serde::{Serialize, Deserialize};
 
@@ -18,7 +22,7 @@ fn main() {
 
 #[tauri::command]
 fn get_profile () -> ProfileAccounts {
-    let p = app::Profile {
+    let p = Profile {
         id: 1,
         name: String::from("test"),
         location: String::from("test.json")
