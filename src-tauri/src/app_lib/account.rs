@@ -170,9 +170,12 @@ mod profile {
         assert_ne!(0, p.id);
         assert_eq!(str, file);
     }
-    /*
+    
     #[test]
-    fn get() {}
+    fn get() {
+        
+    }
+    /*
     #[test]
     fn add() {}
     #[test]
